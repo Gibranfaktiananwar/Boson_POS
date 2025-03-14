@@ -9,21 +9,27 @@
         <!-- Navbar nav -->
         <ul class="navbar-nav flex-column" id="sideNavbar">
             <li class="nav-item">
-                <a class="nav-link active" href="{{ route('dashboard') }}">
+                <a class="nav-link" href="{{ route('dashboard') }}">
                     <i data-feather="home" class="nav-icon icon-xs me-2"></i> Dashboard
                 </a>
             </li>
 
+            @role('masteradmin')
             <li class="nav-item">
                 <div class="navbar-heading">Data Management</div>
             </li>
             <li class="nav-item">
                 <a class="nav-link has-arrow collapsed" href="#" data-bs-toggle="collapse"
-                    data-bs-target="#navMasterData" aria-expanded="false" aria-controls="navMasterData">
+                    data-bs-target="#navMasterData" aria-expanded="false">
                     <i data-feather="database" class="nav-icon icon-xs me-2"></i> Master Data
                 </a>
                 <div id="navMasterData" class="collapse" data-bs-parent="#sideNavbar">
                     <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('masteradmin.index') }}">
+                                <i data-feather="users" class="nav-icon icon-xs me-2"></i> Data Admin
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('users.index') }}">
                                 <i data-feather="users" class="nav-icon icon-xs me-2"></i> Data User
@@ -38,14 +44,17 @@
                 </div>
             </li>
 
+            @endrole
+
+
             <li class="nav-item">
                 <div class="navbar-heading">Gifts & Rewards</div>
             </li>
             <li class="nav-item">
-                <a class="nav-link has-arrow" href="#">
+                <a class="nav-link has-arrow" href="{{ route('usertoko.index') }}">
                     <i data-feather="gift" class="nav-icon icon-xs me-2"></i> Redeem Rewards
                 </a>
-            </li> 
+            </li>
         </ul>
     </div>
 </nav>

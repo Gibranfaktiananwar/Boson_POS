@@ -12,9 +12,12 @@ class DatauserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->paginate(10);
+        // display roles that are not masteradmin
+        $users = User::whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'masteradmin');
+        })->latest()->paginate(10);
         $roles = Role::all();
-        return view('Datauser.index', compact('users', 'roles'));
+        return view('masteradmin.index', compact('users', 'roles'));
     }
 
     public function store(Request $request)

@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DatauserController;
+use App\Http\Controllers\Admin\DataAdminController;
+use App\Http\Controllers\Admin\DataUserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserToko\UserTokoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,10 +19,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Data User
-    Route::get('/users', [DatauserController::class, 'index'])->name('users.index');
+    Route::get('/users', [DataUserController::class, 'index'])->name('users.index');
+    Route::post('/users', [DataUserController::class, 'store'])->name('users.store');
+    Route::put('/users/{id}', [DataUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [DataUserController::class, 'destroy'])->name('users.destroy');
+
+    // Data Masteradmin
+    Route::get('/masteradmin', [DataAdminController::class, 'index'])->name('masteradmin.index');
     Route::post('/users', [DatauserController::class, 'store'])->name('users.store');
     Route::put('/users/{id}', [DatauserController::class, 'update'])->name('users.update');
     Route::delete('/users/{id}', [DatauserController::class, 'destroy'])->name('users.destroy');
+
+    Route::get('/redeem-rewards', [UserTokoController::class, 'index'])->name('usertoko.index');
 
 });
 

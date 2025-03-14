@@ -36,10 +36,10 @@ class UserSeeder extends Seeder
         // Membuat pengguna Manager di tabel User
         $tokoUser = User::updateOrCreate(
             [
-                'email' => 'manager@gmail.com',
+                'email' => 'usertoko@gmail.com',
             ],
             [
-                'name' => 'Manager Example',
+                'name' => 'tokoABC',
                 'password' => Hash::make('password'),
             ],
         );

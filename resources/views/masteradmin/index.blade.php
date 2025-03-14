@@ -27,7 +27,7 @@
                                     <tr>
                                         <td class="align-middle">{{ $user->name }}</td>
                                         <td class="align-middle">{{ $user->email }}</td>
-                                        <td class="align-middle">{{ $user->role ?? 'N/A' }}</td>
+                                        <td class="align-middle">{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}</td>
                                         <td class="align-middle">
                                             <a href="#" class="text-warning me-2" data-bs-toggle="modal"
                                                 data-bs-target="#userModal" data-id="{{ $user->id }}">
