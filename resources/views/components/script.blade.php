@@ -37,3 +37,21 @@
         }
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput = document.getElementById("password");
+        const togglePassword = document.getElementById("togglePassword");
+
+        togglePassword.addEventListener("click", function () {
+            // Cek apakah password dalam mode terlihat
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                togglePassword.innerHTML = '<i class="fas fa-eye-slash"></i>'; // Ganti ikon
+            } else {
+                passwordInput.type = "password";
+                togglePassword.innerHTML = '<i class="fas fa-eye"></i>'; // Ganti ikon
+            }
+        });
+    });
+</script>

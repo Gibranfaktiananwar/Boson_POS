@@ -10,6 +10,7 @@
   <link href="../assets/libs/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet" />
   <link href="../assets/libs/prismjs/themes/prism-okaidia.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/theme.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <title>Sign In | Boson POS</title>
 </head>
 
@@ -19,7 +20,7 @@
       <div class="col-12 col-md-8 col-lg-6 col-xxl-4 py-8 py-xl-0">
         <div class="card smooth-shadow-md">
           <div class="card-body p-6">
-          <div class="mb-4 text-center">
+            <div class="mb-4 text-center">
               <p class="mb-6" style="color: #5340d9; font-size: 24px; font-weight: bold;">Boson POS</p>
             </div>
 
@@ -33,9 +34,15 @@
               </div>
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" placeholder="Masukan Password" id="password" class="form-control" name="password" required>
+                <div class="input-group">
+                  <input type="password" placeholder="Masukan Password" id="password" class="form-control" name="password" required>
+                  <span class="input-group-text" onclick="togglePassword()" style="cursor: pointer;">
+                    <i id="eyeIcon" class="fas fa-eye"></i>
+                  </span>
+                </div>
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
               </div>
+
               <div class="d-lg-flex justify-content-between align-items-center mb-4">
                 <div class="form-check custom-checkbox">
                   <input type="checkbox" class="form-check-input" id="rememberme" name="remember">
@@ -66,5 +73,23 @@
   <script src="../assets/libs/prismjs/plugins/toolbar/prism-toolbar.min.js"></script>
   <script src="../assets/libs/prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
   <script src="../assets/js/theme.min.js"></script>
+  <script>
+    function togglePassword() {
+        var passwordInput = document.getElementById("password");
+        var eyeIcon = document.getElementById("eyeIcon");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            eyeIcon.classList.remove("fa-eye");
+            eyeIcon.classList.add("fa-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            eyeIcon.classList.remove("fa-eye-slash");
+            eyeIcon.classList.add("fa-eye");
+        }
+    }
+</script>
+
 </body>
+
 </html>

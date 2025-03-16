@@ -13,9 +13,7 @@ class DatauserController extends Controller
     public function index()
     {
         // display roles that are not masteradmin
-        $users = User::whereDoesntHave('roles', function ($query) {
-            $query->where('name', 'masteradmin');
-        })->latest()->paginate(10);
+        $users = User::with('roles')->latest()->paginate(10);
         $roles = Role::all();
         return view('masteradmin.index', compact('users', 'roles'));
     }
@@ -25,8 +23,8 @@ class DatauserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
-            'role' => 'required'
+            'role' => 'required',
+            'password' => 'required|min:6',
         ]);
 
         $user = User::create([
@@ -36,7 +34,6 @@ class DatauserController extends Controller
         ]);
 
         $user->assignRole($request->role);
-
         return back()->with('success', 'User has been successfully added.');
     }
 
