@@ -51,6 +51,7 @@
             resultMessage.classList.add("text-danger");
         }
         
+        
         // Tampilkan modal
         let modal = new bootstrap.Modal(document.getElementById('resultModal'));
         modal.show();
