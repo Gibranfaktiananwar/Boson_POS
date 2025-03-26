@@ -29,8 +29,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/redeem-rewards', [UserTokoController::class, 'index'])->name('usertoko.index');
-
-    
 });
 
 require __DIR__ . '/auth.php';
