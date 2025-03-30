@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
         // ]);
 
         $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
-        $userTokoRole = Role::firstOrCreate(['name' => 'usertoko']);
+        $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
 
         $masteradminUser = User::updateOrCreate(
             [
@@ -34,9 +34,9 @@ class UserSeeder extends Seeder
         $masteradminUser->assignRole($adminRole);
 
         // Membuat pengguna Manager di tabel User
-        $tokoUser = User::updateOrCreate(
+        $admintokoUser = User::updateOrCreate(
             [
-                'email' => 'usertoko@gmail.com',
+                'email' => 'admintoko@gmail.com',
             ],
             [
                 'name' => 'tokoABC',
@@ -45,6 +45,6 @@ class UserSeeder extends Seeder
         );
 
         // Assign userTokoRole
-        $tokoUser->assignRole($userTokoRole);
+        $admintokoUser->assignRole($adminTokoRole);
     }
 }

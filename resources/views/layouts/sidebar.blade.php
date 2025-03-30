@@ -39,13 +39,12 @@
                 </div>
             </li>
 
-
             @endrole
             <li class="nav-item">
                 <div class="navbar-heading">Gifts & Rewards</div>
             </li>
             <li class="nav-item">
-                <a class="nav-link has-arrow" href="{{ route('usertoko.index') }}">
+                <a class="nav-link has-arrow" href="{{ route('admintoko.index') }}">
                     <i data-feather="gift" class="nav-icon icon-xs me-2"></i> Redeem Rewards
                 </a>
             </li>

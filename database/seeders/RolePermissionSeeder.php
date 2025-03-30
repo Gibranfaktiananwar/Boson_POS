@@ -32,12 +32,12 @@ class RolePermissionSeeder extends Seeder
         // Berikan semua izin kepada role admin
         $adminRole->givePermissionTo(Permission::pluck('name')->toArray());
 
-        //role usertoko
-        $userTokoRole = Role::firstOrCreate(['name' => 'usertoko']);
+        //role admintoko
+        $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
 
         //create permission
         $permission2 = Permission::firstOrCreate(['name' => 'redeem-rewards']);
-        $userTokoRole->givePermissionTo($permission2);
-        $userTokoRole->givePermissionTo(['redeem-rewards']);
+        $adminTokoRole->givePermissionTo($permission2);
+        $adminTokoRole->givePermissionTo(['redeem-rewards']);
     }
 }

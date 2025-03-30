@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\UserToko;
+namespace App\Http\Controllers\AdminToko;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class UserTokoController extends Controller
+class RedeemController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('usertoko.index');
+        return view('admintoko.index');
     }
 
     /**

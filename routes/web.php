@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DataAdminController;
-use App\Http\Controllers\Admin\DataUserController;
+use App\Http\Controllers\MasterAdmin\DashboardController;
+use App\Http\Controllers\MasterAdmin\DataUserController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserToko\UserTokoController;
+use App\Http\Controllers\AdminToko\RedeemController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/users/{id}', [DataUserController::class, 'destroy'])->name('users.destroy');
     });
 
-    Route::get('/redeem-rewards', [UserTokoController::class, 'index'])->name('usertoko.index');
+    Route::get('/redeem-rewards', [RedeemController ::class, 'index'])->name('admintoko.index');
 });
 
 require __DIR__ . '/auth.php';
