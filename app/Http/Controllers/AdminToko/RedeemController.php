@@ -4,6 +4,9 @@ namespace App\Http\Controllers\AdminToko;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\ExternalInventoryService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 
 class RedeemController extends Controller
 {
@@ -13,6 +16,25 @@ class RedeemController extends Controller
     public function index()
     {
         return view('admintoko.index');
+    }
+
+    protected $inventoryService;
+
+    public function __construct(ExternalInventoryService $inventoryService)
+    {
+        $this->inventoryService = $inventoryService;
+    }
+
+    // Untuk API cek SN
+    public function cekSN(Request $request)
+    {
+        $request->validate([
+            'sn' => 'required|string'
+        ]);
+
+        $result = $this->inventoryService->checkSn($request->sn);
+
+        return response()->json($result);
     }
 
     /**

@@ -86,7 +86,7 @@
                         <label for="role" class="form-label">Role</label>
                         <select class="form-control" id="role" name="role" required>
                             <option value="masteradmin">masteradmin</option>
-                            <option value="usertoko">usertoko</option>
+                            <option value="admintoko">admintoko</option>
                         </select>
                     </div>
                     <div class="mb-3">

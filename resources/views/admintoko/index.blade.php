@@ -36,6 +36,7 @@
                     <label class="form-label fw-bold">Masukkan atau Scan Serial Number</label>
                     <input type="text" id="serialInput" class="form-control" placeholder="Masukkan atau scan barcode...">
                 </div>
+
                 <button onclick="checkSerial()" class="btn btn-info w-100">Cek Serial</button>
             </div>
         </div>
@@ -44,13 +45,13 @@
     <!-- Modal Hasil -->
     <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content rounded-3 shadow">
                 <div class="modal-header">
                     <h5 class="modal-title">Hasil</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <p id="resultMessage" class="fs-5"></p>
+                    <p id="resultMessage" class="fs-5 mb-0"></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -58,95 +59,128 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
-let token = "";
 
-async function submitUsername() {
-    let username = document.getElementById('usernameInput').value;
-    if (!username) return alert("Username harus diisi!");
+    <script>
+        let globalToken = "";
 
-    // Konversi ke format URL Encoded (string)
-    let formData = new URLSearchParams();
-    formData.append("username", username);
-    let encodedBody = formData.toString(); // "username=test123"
+        async function submitUsername() {
+            let username = document.getElementById('usernameInput').value;
+            if (!username) return alert("Username harus diisi!");
 
-    try {
-        let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory/generate-credential", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ data: encodedBody }) // Kirim sebagai JSON
-        });
+            let formData = new URLSearchParams();
+            formData.append("username", username);
+            let encodedBody = formData.toString();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            try {
+                let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory/generate-credential", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: encodedBody
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                let data = await response.json();
+
+                document.getElementById("uidInput").value = data.content.uid;
+                document.getElementById("secretInput").value = data.content.secret;
+
+                document.getElementById("formUsername").style.display = "none";
+                document.getElementById("formToken").style.display = "block";
+
+                showMessage(data.message || "Berhasil", "text-success");
+
+            } catch (error) {
+                console.error("Error:", error);
+                showMessage("Terjadi kesalahan", "text-danger");
+            }
         }
 
-        let data = await response.json();
-        document.getElementById("uidInput").value = data.content.uid;
-        document.getElementById("secretInput").value = data.content.secret;
-        document.getElementById("formUsername").style.display = "none";
-        document.getElementById("formToken").style.display = "block";
-        showMessage(data.message, "text-success");
+        async function requestToken() {
+            let uuid = document.getElementById("uidInput").value;
+            let secret = document.getElementById("secretInput").value;
 
-    } catch (error) {
-        console.error("Error:", error);
-        showMessage("Terjadi kesalahan saat menghubungi server!", "text-danger");
-    }
-}
+            let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory/get-token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `uuid=${encodeURIComponent(uuid)}&secret=${encodeURIComponent(secret)}`
+            });
 
-async function requestToken() {
-    let uid = document.getElementById("uidInput").value;
-    let secret = document.getElementById("secretInput").value;
-    
-    let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory/get-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, secret })
-    });
-    
-    let data = await response.json();
-    if (response.ok) {
-        token = data.token;
-        document.getElementById("formToken").style.display = "none";
-        document.getElementById("formSerial").style.display = "block";
-        showMessage("Token berhasil dibuat!", "text-success");
-    } else {
-        showMessage(data.message, "text-danger");
-    }
-}
+            let data = await response.json();
 
-async function checkSerial() {
-    let serial = document.getElementById("serialInput").value;
-    if (!serial) return alert("Serial number harus diisi!");
-    
-    let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ serial })
-    });
-    
-    let data = await response.json();
-    if (response.ok) {
-        showMessage(`Nomor SN: ${data.nomor_SN}\nStatus: ${data.status}\nLokasi: ${data.location}`, "text-success");
-    } else {
-        showMessage(data.message, "text-danger");
-    }
-}
+            if (data.success) {
+                console.log('ppppp');
+                console.log('info', data.content);
+                globalToken = data.content[":token"];
+                sessionStorage.setItem("inventoryToken", globalToken);
 
-function showMessage(message, className) {
-    let resultMessage = document.getElementById("resultMessage");
-    resultMessage.textContent = message;
-    resultMessage.className = "fs-5 " + className;
-    let modal = new bootstrap.Modal(document.getElementById("resultModal"));
-    modal.show();
-}
-</script>
+                console.log("Token didapat:", globalToken);
+                // globalToken = content.token;
 
-@endsection
+                // gasss coba cok
+
+
+                // globalToken = data.content?.token;
+                console.log('tokenie', globalToken);
+
+                sessionStorage.setItem('inventoryToken', data.content.token);
+
+                document.getElementById("formToken").style.display = "none";
+                document.getElementById("formSerial").style.display = "block";
+                showMessage("Token berhasil dibuat!", "text-success");
+            } else {
+                showMessage(data.message, "text-danger");
+            }
+        }
+
+        async function checkSerial() {
+            let serial = document.getElementById("serialInput").value;
+            // const token = sessionStorage.getItem('inventoryToken'); // Ambil dari sessionStorage
+            const token = globalToken || sessionStorage.getItem("inventoryToken");
+
+            let response = await fetch("https://grobx.sinarmaju.co.id/api/check-inventory", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `sn=${encodeURIComponent(serial)}&token=${encodeURIComponent(token)}`
+            });
+
+
+            if (!token) {
+                showMessage("Token belum tersedia. Silakan login terlebih dahulu.", "text-danger");
+                return;
+            }
+
+            let data = await response.json();
+
+            document.getElementById("inventoryToken").value = data.content.token;
+
+            if (response.ok) {
+                showMessage(
+                    `Nomor SN: ${data.sn}\nStatus: ${data.status}\nLokasi: ${data.location}`,
+                    "text-success"
+                );
+            } else {
+                showMessage(data.message || "Gagal memeriksa serial number", "text-danger");
+            }
+        }
+
+
+        function showMessage(message, className) {
+            let resultMessage = document.getElementById("resultMessage");
+            resultMessage.textContent = message;
+            resultMessage.className = "fs-5 " + className;
+            let modal = new bootstrap.Modal(document.getElementById("resultModal"));
+            modal.show();
+        }
+    </script>
+
+    @endsection
