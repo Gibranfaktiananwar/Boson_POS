@@ -14,6 +14,14 @@ return [
     |
     */
 
+
+    'inventory_api' => [
+        'uid' => env('API_UID'),
+        'secret' => env('API_SECRET'),
+        'token_url' => env('EXTERNAL_API_TOKEN_URL'),
+        'check_url' => env('EXTERNAL_API_CHECK_URL'),
+    ],
+    
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

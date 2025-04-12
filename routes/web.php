@@ -30,8 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/redeem-rewards', [RedeemController::class, 'index'])->name('admintoko.index');
-    Route::post('/cek-sn', [RedeemController::class, 'cekSN']);
 
+    Route::post('/generate-token', [RedeemController::class, 'generateToken'])->name('token.generate');
+    Route::post('/check-sn', [RedeemController::class, 'checkSerial'])->name('serial.check');
 });
 
 require __DIR__ . '/auth.php';

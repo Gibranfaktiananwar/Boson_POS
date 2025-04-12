@@ -4,7 +4,6 @@ namespace App\Http\Controllers\AdminToko;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Services\ExternalInventoryService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -18,23 +17,64 @@ class RedeemController extends Controller
         return view('admintoko.index');
     }
 
-    protected $inventoryService;
-
-    public function __construct(ExternalInventoryService $inventoryService)
+    public function generateToken(Request $request)
     {
-        $this->inventoryService = $inventoryService;
-    }
+        $uid = config('services.inventory_api.uid');
+        $secret = config('services.inventory_api.secret');
+        $tokenUrl = config('services.inventory_api.token_url');
 
-    // Untuk API cek SN
-    public function cekSN(Request $request)
-    {
-        $request->validate([
-            'sn' => 'required|string'
+        $response = Http::asForm()->post($tokenUrl, [
+            'uuid' => $uid,
+            'secret' => $secret,
         ]);
 
-        $result = $this->inventoryService->checkSn($request->sn);
+        if ($response->successful() && $response->json('success')) {
+            $token = $response->json('content.:token') ?? $response->json('content.token');
 
-        return response()->json($result);
+            // Simpan ke cache selama 3600 detik (1 jam)
+            Cache::put('inventory_token', $token, now()->addSeconds(3600));
+
+            return response()->json([
+                'success' => true,
+                'token' => $token,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $response->json('message') ?? 'Gagal generate token',
+        ], 400);
+    }
+
+    public function checkSerial(Request $request)
+    {
+        $serial = $request->input('sn');
+        $token = Cache::get('inventory_token');
+        $checkUrl = config('services.inventory_api.check_url');
+
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token tidak tersedia atau sudah expired. Silakan generate ulang.',
+            ], 401);
+        }
+
+        $response = Http::asForm()->post($checkUrl, [
+            'sn' => $serial,
+            'token' => $token,
+        ]);
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json([
+                'success' => true,
+                'data' => $response->json(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $response->json('message') ?? 'Gagal memeriksa serial number',
+        ], 400);
     }
 
     /**
