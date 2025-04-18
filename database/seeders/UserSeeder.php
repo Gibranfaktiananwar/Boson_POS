@@ -12,11 +12,6 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // User::create([
-        //     'name' => 'Admin',
-        //     'email' => 'admin@gmail.com',
-        //     'password' => bcrypt('password'),
-        // ]);
 
         $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
         $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
@@ -30,10 +25,10 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('password'),
             ],
         );
-        // Assign adminRole
+
         $masteradminUser->assignRole($adminRole);
 
-        // Membuat pengguna Manager di tabel User
+
         $admintokoUser = User::updateOrCreate(
             [
                 'email' => 'admintoko@gmail.com',
@@ -44,7 +39,6 @@ class UserSeeder extends Seeder
             ],
         );
 
-        // Assign userTokoRole
         $admintokoUser->assignRole($adminTokoRole);
     }
 }
