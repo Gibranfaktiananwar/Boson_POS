@@ -56,6 +56,11 @@
                 <div class="navbar-heading">Product</div>
             </li>
             <li class="nav-item">
+                <a style="font-size: 16px" class="nav-link" href="{{ route('category.index') }}">
+                    <i data-feather="tag" class="nav-icon icon-xs me-2"></i> Category
+                </a>
+            </li>
+            <li class="nav-item">
                 <a style="font-size: 16px" class="nav-link" href="{{ route('catalog.index') }}">
                     <i data-feather="grid" class="nav-icon icon-xs me-2"></i> Catalog
                 </a>
