@@ -14,7 +14,7 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat atau ambil izin yang sudah ada
+        // Initial Permission List
         $permissions = [
             'view-user',
             'add-user',
@@ -22,20 +22,19 @@ class RolePermissionSeeder extends Seeder
             'delete-user'
         ];
 
+        // Create permissions
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Pastikan role 'admin' sudah ada
+        // Create Role: masteradmin
         $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
-
-        // Berikan semua izin kepada role admin
+        // Grant all permission to masteradmin role
         $adminRole->givePermissionTo(Permission::pluck('name')->toArray());
 
-        //role admintoko
+        // Create Role: admintoko
         $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
-
-        //create permission
+        //  grant redeem-rewards permission to the admintoko role.
         $permission2 = Permission::firstOrCreate(['name' => 'redeem-rewards']);
         $adminTokoRole->givePermissionTo($permission2);
         $adminTokoRole->givePermissionTo(['redeem-rewards']);

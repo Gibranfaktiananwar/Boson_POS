@@ -12,10 +12,12 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-
+        
+        // create role
         $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
         $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
 
+        // Create a data user for masteradmin role 
         $masteradminUser = User::updateOrCreate(
             [
                 'email' => 'masteradmin@gmail.com',
@@ -25,10 +27,10 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('password'),
             ],
         );
-
+        // put the user into the masteradmin role
         $masteradminUser->assignRole($adminRole);
 
-
+        // create a data user for masteradmin role
         $admintokoUser = User::updateOrCreate(
             [
                 'email' => 'admintoko@gmail.com',
@@ -38,7 +40,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
             ],
         );
-
+        // pu the user into admintoko role
         $admintokoUser->assignRole($adminTokoRole);
     }
 }

@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Http;
 
 class RedeemController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return view('admintoko.index');
@@ -19,27 +16,33 @@ class RedeemController extends Controller
 
     public function generateToken(Request $request)
     {
+        // Retrieve the UID, Secret, and URL token from env.
         $uid = config('services.inventory_api.uid');
         $secret = config('services.inventory_api.secret');
         $tokenUrl = config('services.inventory_api.token_url');
 
+        // Send POST request to API token
         $response = Http::asForm()->post($tokenUrl, [
             'uuid' => $uid,
             'secret' => $secret,
         ]);
 
+        // check response
         if ($response->successful() && $response->json('success')) {
-            $token = $response->json('content.:token') ?? $response->json('content.token');
+            // Retrieve token from response
+            $token = $response->json('content.:token') ?? $response->json('content.token'); 
 
-            // Simpan ke cache selama 3600 detik (1 jam)
+            // Save token to cache for 1 hour
             Cache::put('inventory_token', $token, now()->addSeconds(3600));
 
+            // Return JSON response on success
             return response()->json([
                 'success' => true,
                 'token' => $token,
             ]);
         }
 
+        // If the above function fails, reply with a JSON error
         return response()->json([
             'success' => false,
             'message' => $response->json('message') ?? 'Gagal generate token',
@@ -48,10 +51,12 @@ class RedeemController extends Controller
 
     public function checkSerial(Request $request)
     {
+        //Take serial number input
         $serial = $request->input('sn');
-        $token = Cache::get('inventory_token');
-        $checkUrl = config('services.inventory_api.check_url');
+        $token = Cache::get('inventory_token'); //Retrieve token from cache
+        $checkUrl = config('services.inventory_api.check_url'); // etrieve URL
 
+        //Check token
         if (!$token) {
             return response()->json([
                 'success' => false,
@@ -59,11 +64,13 @@ class RedeemController extends Controller
             ], 401);
         }
 
+        // Send request to API check serial
         $response = Http::asForm()->post($checkUrl, [
             'sn' => $serial,
             'token' => $token,
         ]);
 
+        //Check response
         if ($response->successful() && $response->json('success')) {
             return response()->json([
                 'success' => true,
@@ -71,6 +78,7 @@ class RedeemController extends Controller
             ]);
         }
 
+        // If the above fails, send an error response
         return response()->json([
             'success' => false,
             'message' => $response->json('message') ?? 'Gagal memeriksa serial number',

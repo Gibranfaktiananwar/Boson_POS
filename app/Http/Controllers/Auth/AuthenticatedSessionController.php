@@ -28,14 +28,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if (Auth::user()->hasRole('masteradmin')) {
-            return redirect()->to('dashboard');
-        }
-
-        if (Auth::user()->hasRole('usertoko')) {
-            return redirect()->to('redeem-rewards');
-        }
-
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

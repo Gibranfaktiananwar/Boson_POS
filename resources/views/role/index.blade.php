@@ -6,7 +6,7 @@
         <div class="col-lg-12 col-md-12 col-12 mt-6">
             <div class="card h-100">
                 <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Data User</h4>
+                    <h4 class="mb-0">Data Role</h4>
                     <a href="#" data-bs-toggle="modal" data-bs-target="#userModal" class="text-primary">
                         <i data-feather="plus-circle" class="fs-3"></i>
                     </a>
@@ -23,22 +23,22 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($users as $user)
+                            
                             <tr>
-                                <td class="align-middle">{{ $user->name }}</td>
-                                <td class="align-middle">{{ $user->email }}</td>
-                                <td class="align-middle">{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}</td>
+                                <td class="align-middle"></td>
+                                <td class="align-middle"></td>
+                                <td class="align-middle"></td>
                                 <td class="align-middle">
                                     <a href="#" class="text-warning me-2 edit-user"
-                                        data-id="{{ $user->id }}"
-                                        data-name="{{ $user->name }}"
-                                        data-email="{{ $user->email }}"
-                                        data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}"
+                                        data-id=""
+                                        data-name=""
+                                        data-email=""
+                                        data-role=""
                                         data-bs-toggle="modal"
                                         data-bs-target="#userModal">
                                         <i data-feather="edit" class="fs-4"></i>
                                     </a>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                    <form action="" method="POST"
                                         class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -50,12 +50,10 @@
                                 </td>
 
                             </tr>
-                            @endforeach
                         </tbody>
                     </table>
                 </div>
                 <div class="card-footer">
-                    {{ $users->links() }}
                 </div>
             </div>
         </div>
@@ -109,44 +107,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const userModal = document.getElementById("userModal");
-        const userForm = document.getElementById("userForm");
-        const methodField = document.getElementById("methodField");
-        const nameInput = document.getElementById("name");
-        const emailInput = document.getElementById("email");
-        const roleInput = document.getElementById("role");
-        const passwordInput = document.getElementById("password");
-
-        document.querySelectorAll(".edit-user").forEach(button => {
-            button.addEventListener("click", function() {
-                // Ambil data dari tombol edit
-                const id = this.getAttribute("data-id");
-                const name = this.getAttribute("data-name");
-                const email = this.getAttribute("data-email");
-                const role = this.getAttribute("data-role");
-
-                // Isi form dengan data user
-                nameInput.value = name;
-                emailInput.value = email;
-                roleInput.value = role;
-                passwordInput.value = ""; // Kosongkan password
-
-                // Ubah method menjadi PUT untuk update user
-                methodField.value = "PUT";
-                userForm.action = `/users/${id}`;
-            });
-        });
-
-        // Reset form saat modal ditutup
-        userModal.addEventListener("hidden.bs.modal", function() {
-            userForm.reset();
-            userForm.action = "{{ route('users.store') }}"; // Kembali ke tambah user
-            methodField.value = "POST"; // Kembalikan method ke POST
-        });
-    });
-</script>
 
 @endsection
