@@ -17,4 +17,8 @@ class Product extends Model
         //devine relationship between products and categories
         return $this->belongsTo(Category::class, 'code', 'code');
     }
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
 }

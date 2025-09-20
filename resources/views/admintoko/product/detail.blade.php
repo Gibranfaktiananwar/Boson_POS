@@ -18,9 +18,6 @@
                                     style="max-height: 320px; width: auto; object-fit: contain; cursor: zoom-in;"
                                     id="mainProductImage"
                                     onclick="openZoomModal('{{ asset('storage/' . $product->image) }}')">
-                                <div class="zoom-hint">
-                                    <i class="fas fa-search-plus"></i> Click to zoom
-                                </div>
                             </div>
                         </div>
 

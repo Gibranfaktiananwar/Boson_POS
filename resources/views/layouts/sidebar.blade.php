@@ -44,7 +44,7 @@ $cartCount = collect($cartItems)->sum('quantity');
             @role('masteradmin')
             <hr class="sidebar-divider">
             <li class="nav-item mt-2">
-                <div class="navbar-heading">Data Management</div>
+                <div class="navbar-heading">User Management</div>
             </li>
             <li class="nav-item">
                 <a style="font-size: 15px" class="nav-link has-arrow" href="#" data-bs-toggle="collapse"
@@ -101,7 +101,7 @@ $cartCount = collect($cartItems)->sum('quantity');
                     <span class="nav-icon-wrapper me-2">
                         <i data-feather="shopping-cart" class="nav-icon icon-xs"></i>
                     </span>
-                    <span>Cashier</span>
+                    <span>Cart</span>
                     @if ($cartCount > 0)
                     <span class="badge bg-danger badge-cart ms-2">{{ $cartCount }}</span>
                     @endif
