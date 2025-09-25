@@ -10,13 +10,19 @@ class CartItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'product_id', // pastikan ini ada
+        'cart_id',      // tambahkan (aman walau relasi sudah mengisi otomatis)
+        'product_id',
         'quantity',
         'price',
     ];
 
+    public function cart()
+    {
+        return $this->belongsTo(Cart::class);
+    }
+
     public function product()
     {
-        return $this->belongsTo(Product::class);  // Relasi one-to-many inverse
+        return $this->belongsTo(Product::class);
     }
 }

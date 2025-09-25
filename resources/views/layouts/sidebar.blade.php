@@ -24,6 +24,29 @@ $cartCount = collect($cartItems)->sum('quantity');
         display: inline-block;
         width: 24px;
     }
+
+    .cart-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #ff5722;
+        /* warna oranye */
+        color: #fff;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 50%;
+        padding: 3px 6px;
+        line-height: 1;
+        min-width: 20px;
+        text-align: center;
+        box-shadow: 0 0 0 2px #fff;
+        /* biar ada border putih di luar badge */
+    }
+
+    .nav-icon-wrapper {
+        position: relative;
+        display: inline-block;
+    }
 </style>
 
 <nav class="navbar-vertical navbar">
@@ -97,14 +120,20 @@ $cartCount = collect($cartItems)->sum('quantity');
             </li>
 
             <li class="nav-item position-relative">
-                <a style="font-size: 16px" class="nav-link d-flex align-items-center" href="{{ route('cart.index') }}">
-                    <span class="nav-icon-wrapper me-2">
-                        <i data-feather="shopping-cart" class="nav-icon icon-xs"></i>
-                    </span>
-                    <span>Cart</span>
-                    @if ($cartCount > 0)
-                    <span class="badge bg-danger badge-cart ms-2">{{ $cartCount }}</span>
-                    @endif
+                @php
+                $cartCount = auth()->check()
+                ? optional(optional(auth()->user()->cart)->items)->sum('quantity') ?? 0
+                : 0;
+                @endphp
+
+                <a href="{{ route('cart.index') }}" class="nav-link d-flex align-items-center">
+                    <div class="nav-icon-wrapper">
+                        <i class="bi bi-cart" style="font-size: 18px;"></i>
+                        @if($cartCount > 0)
+                        <span class="cart-badge">{{ $cartCount }}</span>
+                        @endif
+                    </div>
+                    <span class="ms-2">Cart</span>
                 </a>
             </li>
 

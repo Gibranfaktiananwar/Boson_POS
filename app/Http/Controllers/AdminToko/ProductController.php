@@ -14,13 +14,13 @@ class ProductController extends Controller
     {
         // retrieve all product data from the database
         $products = Product::with('category')->get();
-        // Send the data to the admintoko.product.view
-        return view('admintoko.product.view', compact('products'));
+        // Send the data to the admintoko.catalog.view
+        return view('admintoko.catalog.view', compact('products'));
     }
 
     public function show(Product $product)
     {
-        return view('admintoko.product.detail', compact('product'));
+        return view('admintoko.catalog.detail', compact('product'));
     }
 
     public function management()

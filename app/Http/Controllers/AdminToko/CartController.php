@@ -19,7 +19,7 @@ class CartController extends Controller
         $items = $cart ? $cart->items()->with('product')->get() : collect();
         $total = $items->sum(fn($item) => $item->product->price * $item->quantity);
 
-        return view('admintoko.cashier.index', compact('items', 'total'));
+        return view('admintoko.cart.index', compact('items', 'total'));
     }
 
 
