@@ -69,10 +69,10 @@
             const detail = data.data.content;
             msgEl.innerHTML = `
                 <div class="p-4 bg-white/90 text-gray-900 rounded-lg shadow space-y-1">
-                    <p><strong>🔢 SN:</strong> ${detail.sn}</p>
-                    <p><strong>📦 Produk:</strong> ${detail.product_name}</p>
-                    <p><strong>📍 Lokasi:</strong> ${detail.location}</p>
-                    <p><strong>📌 Status:</strong> 
+                    <p><strong>SN:</strong> ${detail.sn}</p>
+                    <p><strong>Produk:</strong> ${detail.product_name}</p>
+                    <p><strong>Lokasi:</strong> ${detail.location}</p>
+                    <p><strong>Status:</strong> 
                         <span class="${detail.status === 'enable' ? 'text-green-600' : 'text-red-600'} font-semibold">
                             ${detail.status}
                         </span>

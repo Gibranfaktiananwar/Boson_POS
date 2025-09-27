@@ -7,11 +7,15 @@
             <div class="card h-100">
                 <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Data User</h4>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#userModal" class="text-primary">
+                    <a href="#"
+                       id="openCreateUser"
+                       data-bs-toggle="modal"
+                       data-bs-target="#userModal"
+                       class="text-primary">
                         <i data-feather="plus-circle" class="fs-3"></i>
                     </a>
-
                 </div>
+
                 <div class="table-responsive">
                     <table class="table text-nowrap">
                         <thead class="table-light">
@@ -24,22 +28,25 @@
                         </thead>
                         <tbody>
                             @foreach ($users as $user)
+                            @php
+                                $firstRole = optional($user->roles->first())->name;
+                            @endphp
                             <tr>
                                 <td class="align-middle">{{ $user->name }}</td>
                                 <td class="align-middle">{{ $user->email }}</td>
                                 <td class="align-middle">{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}</td>
                                 <td class="align-middle">
-                                    <a href="#" class="text-warning me-2 edit-user"
-                                        data-id="{{ $user->id }}"
-                                        data-name="{{ $user->name }}"
-                                        data-email="{{ $user->email }}"
-                                        data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#userModal">
+                                    <a href="#"
+                                       class="text-warning me-2 edit-user"
+                                       data-id="{{ $user->id }}"
+                                       data-name="{{ $user->name }}"
+                                       data-email="{{ $user->email }}"
+                                       data-role="{{ $firstRole ?? '' }}"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#userModal">
                                         <i data-feather="edit" class="fs-4"></i>
                                     </a>
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                        class="d-inline">
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-link text-danger p-0 border-0"
@@ -48,12 +55,12 @@
                                         </button>
                                     </form>
                                 </td>
-
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+
                 <div class="card-footer">
                     {{ $users->links() }}
                 </div>
@@ -62,33 +69,39 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Add/Edit User -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="userModalLabel">Add / Edit User</h5>
+                <h5 class="modal-title" id="userModalLabel">Add User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="userForm" method="POST">
+
+            <form id="userForm" method="POST" action="{{ route('users.store') }}">
                 @csrf
                 <input type="hidden" name="_method" id="methodField" value="POST">
+
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
+                        <input type="text" class="form-control" id="name" name="name" required />
                     </div>
+
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <input type="email" class="form-control" id="email" name="email" required />
                     </div>
+
                     <div class="mb-3">
                         <label for="role" class="form-label">Role</label>
                         <select class="form-control" id="role" name="role" required>
-                            <option value="masteradmin">masteradmin</option>
-                            <option value="admintoko">admintoko</option>
+                            @foreach ($roles as $r)
+                                <option value="{{ $r->name }}">{{ $r->name }}</option>
+                            @endforeach
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <div class="input-group">
@@ -97,56 +110,117 @@
                                 <i class="fas fa-eye"></i>
                             </span>
                         </div>
+                        <small class="text-muted" id="passwordHelpText">
+                            Must be filled in when adding a new user
+                        </small>
                     </div>
-
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Save changes</button>
                 </div>
-            </form>
 
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const userModal = document.getElementById("userModal");
-        const userForm = document.getElementById("userForm");
-        const methodField = document.getElementById("methodField");
-        const nameInput = document.getElementById("name");
-        const emailInput = document.getElementById("email");
-        const roleInput = document.getElementById("role");
-        const passwordInput = document.getElementById("password");
+document.addEventListener("DOMContentLoaded", function () {
+    const userModal     = document.getElementById("userModal");
+    const userForm      = document.getElementById("userForm");
+    const methodField   = document.getElementById("methodField");
+    const nameInput     = document.getElementById("name");
+    const emailInput    = document.getElementById("email");
+    const roleInput     = document.getElementById("role");
+    const passwordInp   = document.getElementById("password");
+    const modalTitle    = document.getElementById("userModalLabel");
+    const openCreateBtn = document.getElementById("openCreateUser");
+    const passwordHelp  = document.getElementById("passwordHelpText");
+    const saveBtn       = document.getElementById("saveBtn");
 
-        document.querySelectorAll(".edit-user").forEach(button => {
-            button.addEventListener("click", function() {
-                // Ambil data dari tombol edit
-                const id = this.getAttribute("data-id");
-                const name = this.getAttribute("data-name");
-                const email = this.getAttribute("data-email");
-                const role = this.getAttribute("data-role");
+    function setAddMode() {
+        modalTitle.textContent = "Add User";
+        passwordHelp.textContent = "Must be filled in when adding a new user";
 
-                // Isi form dengan data user
-                nameInput.value = name;
-                emailInput.value = email;
+        // tombol jadi "Submit"
+        saveBtn.textContent = "Submit";
+
+        passwordInp.required = true;
+        saveBtn.disabled = passwordInp.value.trim().length === 0;
+    }
+
+    function setEditMode() {
+        modalTitle.textContent = "Edit User";
+        passwordHelp.textContent = "Optional, you can change the password.";
+
+        // tombol tetap "Save changes"
+        saveBtn.textContent = "Save changes";
+
+        passwordInp.required = false;
+        saveBtn.disabled = false;
+    }
+
+    passwordInp.addEventListener("input", function() {
+        if (passwordInp.required) {
+            saveBtn.disabled = passwordInp.value.trim().length === 0;
+        }
+    });
+
+    openCreateBtn.addEventListener("click", function () {
+        userForm.reset();
+        methodField.value = "POST";
+        userForm.action   = "{{ route('users.store') }}";
+
+        if (roleInput.options.length > 0) roleInput.selectedIndex = 0;
+        passwordInp.value = "";
+
+        setAddMode();
+    });
+
+    document.querySelectorAll(".edit-user").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const id    = this.getAttribute("data-id");
+            const name  = this.getAttribute("data-name");
+            const email = this.getAttribute("data-email");
+            const role  = this.getAttribute("data-role") || "";
+
+            nameInput.value  = name;
+            emailInput.value = email;
+            passwordInp.value = "";
+
+            if (role) {
                 roleInput.value = role;
-                passwordInput.value = ""; // Kosongkan password
+            } else {
+                if (roleInput.options.length > 0) roleInput.selectedIndex = 0;
+            }
 
-                // Ubah method menjadi PUT untuk update user
-                methodField.value = "PUT";
-                userForm.action = `/users/${id}`;
-            });
-        });
+            methodField.value = "PUT";
+            userForm.action   = "{{ url('/users') }}/" + id;
 
-        // Reset form saat modal ditutup
-        userModal.addEventListener("hidden.bs.modal", function() {
-            userForm.reset();
-            userForm.action = "{{ route('users.store') }}"; // Kembali ke tambah user
-            methodField.value = "POST"; // Kembalikan method ke POST
+            setEditMode();
         });
     });
-</script>
 
+    userModal.addEventListener("hidden.bs.modal", function () {
+        userForm.reset();
+        methodField.value = "POST";
+        userForm.action   = "{{ route('users.store') }}";
+        if (roleInput.options.length > 0) roleInput.selectedIndex = 0;
+
+        setAddMode();
+    });
+
+    const toggle = document.getElementById("togglePassword");
+    if (toggle) {
+        toggle.addEventListener("click", function () {
+            const type = passwordInp.getAttribute("type") === "password" ? "text" : "password";
+            passwordInp.setAttribute("type", type);
+        });
+    }
+
+    setAddMode();
+});
+</script>
 @endsection

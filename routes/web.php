@@ -26,7 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['role:masteradmin'])->group(function () {
         Route::resource('users', DataUserController::class);
-        Route::resource('role', RoleController::class);
+        Route::resource('role', RoleController::class)->except(['show', 'create', 'edit']);
+        Route::post('permissions', [RoleController::class, 'storePermission'])->name('permissions.store');
     });
 
     // Claim rewwards

@@ -19,7 +19,8 @@ class RolePermissionSeeder extends Seeder
             'view-user',
             'add-user',
             'edit-user',
-            'delete-user'
+            'delete-user',
+            'redeem-rewards',
         ];
 
         // Create permissions
