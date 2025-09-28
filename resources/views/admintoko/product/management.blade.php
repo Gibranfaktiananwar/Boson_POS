@@ -4,12 +4,15 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
         <h2>Management Product</h2>
+        @can('add-product')
         <a href="{{ route('products.create') }}" class="btn btn-primary">Add Product</a>
+        @endcan
     </div>
 
     @if ($products->count())
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
+            @can('view-product')
             <thead class="table-light">
                 <tr>
                     <th>No</th>
@@ -48,17 +51,22 @@
                     <td>Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                     <td>
                         <div class="d-flex justify-content-center align-items-center gap-2">
+                            @can('edit-product')
                             <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-warning">Edit</a>
+                            @endcan
+                            @can('delete-product')
                             <form action="{{ route('products.destroy', $product) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-sm btn-danger" onclick="return confirm('Hapus produk ini?')">Delete</button>
                             </form>
+                            @endcan
                         </div>
                     </td>
                 </tr>
                 @endforeach
             </tbody>
+            @endcan
         </table>
     </div>
     @else

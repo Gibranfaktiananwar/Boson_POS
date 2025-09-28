@@ -7,6 +7,9 @@
             <div class="card h-100">
                 <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Data User</h4>
+
+                    {{-- TOMBOL ADD USER hanya tampil jika punya permission add-user --}}
+                    @can('add-user')
                     <a href="#"
                        id="openCreateUser"
                        data-bs-toggle="modal"
@@ -14,10 +17,13 @@
                        class="text-primary">
                         <i data-feather="plus-circle" class="fs-3"></i>
                     </a>
+                    @endcan
+
                 </div>
 
                 <div class="table-responsive">
                     <table class="table text-nowrap">
+                        @can('view-user')
                         <thead class="table-light">
                             <tr>
                                 <th>Name</th>
@@ -36,6 +42,8 @@
                                 <td class="align-middle">{{ $user->email }}</td>
                                 <td class="align-middle">{{ $user->roles->pluck('name')->implode(', ') ?: 'N/A' }}</td>
                                 <td class="align-middle">
+                                    {{-- TOMBOL EDIT hanya tampil jika punya permission edit-user --}}
+                                    @can('edit-user')
                                     <a href="#"
                                        class="text-warning me-2 edit-user"
                                        data-id="{{ $user->id }}"
@@ -46,6 +54,10 @@
                                        data-bs-target="#userModal">
                                         <i data-feather="edit" class="fs-4"></i>
                                     </a>
+                                    @endcan
+
+                                    {{-- TOMBOL DELETE hanya tampil jika punya permission delete-user --}}
+                                    @can('delete-user')
                                     <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -54,10 +66,12 @@
                                             <i data-feather="trash-2" class="fs-4"></i>
                                         </button>
                                     </form>
+                                    @endcan
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
+                        @endcan
                     </table>
                 </div>
 
@@ -168,16 +182,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    openCreateBtn.addEventListener("click", function () {
-        userForm.reset();
-        methodField.value = "POST";
-        userForm.action   = "{{ route('users.store') }}";
+    if (openCreateBtn) {
+        openCreateBtn.addEventListener("click", function () {
+            userForm.reset();
+            methodField.value = "POST";
+            userForm.action   = "{{ route('users.store') }}";
 
-        if (roleInput.options.length > 0) roleInput.selectedIndex = 0;
-        passwordInp.value = "";
+            if (roleInput.options.length > 0) roleInput.selectedIndex = 0;
+            passwordInp.value = "";
 
-        setAddMode();
-    });
+            setAddMode();
+        });
+    }
 
     document.querySelectorAll(".edit-user").forEach(btn => {
         btn.addEventListener("click", function () {

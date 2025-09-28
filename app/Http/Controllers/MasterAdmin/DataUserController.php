@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class DataUserController extends Controller
 {
+
     public function index()
     {
         // Ambil user beserta rolenya
@@ -19,7 +20,7 @@ class DataUserController extends Controller
         // $roles = Role::where('name', '!=', 'masteradmin')->get();
         $roles = Role::all();
 
-        return view('masteradmin.index', compact('users', 'roles'));
+        return view('masteradmin.user.index', compact('users', 'roles'));
     }
 
     public function store(Request $request)

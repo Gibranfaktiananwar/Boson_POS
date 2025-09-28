@@ -17,7 +17,7 @@
 
 <div class="container">
     <h2 class="mt-4 mb-4">Shopping Cart</h2>
-
+    @can('view-cart')
     @if($items->isNotEmpty())
     <div class="card">
         <div class="table-responsive">
@@ -51,6 +51,7 @@
                         </td>
                         <td>{{ $product->name }}</td>
                         <td>Rp {{ number_format($price, 0, ',', '.') }}</td>
+                        @can('edit-cart')
                         <td class="text-center">
                             <form action="{{ route('cart.update', $product->id) }}"
                                   method="POST"
@@ -77,12 +78,15 @@
                                 In stock: {{ $product->stock }}
                             </small>
                         </td>
+                        @endcan
                         <td>Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
                         <td class="align-middle">
+                            @can('delete-cart')
                             <a href="{{ route('cart.remove', $product->id) }}"
                                class="btn btn-outline-danger btn-sm">
                                 Delete
                             </a>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach
@@ -102,6 +106,7 @@
             </a>
         </div>
     </div>
+    @endcan
     @else
         <p>Your cart is empty. <a href="{{ route('products.index') }}">Continue shopping</a></p>
     @endif

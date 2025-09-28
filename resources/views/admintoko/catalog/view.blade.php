@@ -6,6 +6,7 @@
         <h2>Product Catalog</h2>
     </div>
 
+    @can('view-catalog')
     <div class="row">
         @forelse ($products as $product)
         <div class="col-md-3 col-sm-6 mb-4">
@@ -35,11 +36,13 @@
                         <form action="{{ route('cart.add', $product->id) }}" method="POST">
                             @csrf
                             <input type="hidden" name="quantity" value="1">
+                            @can('add-cart')
                             <button type="submit"
                                 class="btn btn-sm btn-outline-primary w-100"
                                 title="Add to cart">
                                 <i class="fas fa-shopping-cart"></i> Add to cart 
                             </button>
+                            @endcan
                         </form>
 
                     </div>
@@ -52,5 +55,6 @@
         </div>
         @endforelse
     </div>
+    @endcan
 </div>
 @endsection

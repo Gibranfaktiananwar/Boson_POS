@@ -27,7 +27,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:masteradmin'])->group(function () {
         Route::resource('users', DataUserController::class);
         Route::resource('role', RoleController::class)->except(['show', 'create', 'edit']);
+        // routes/web.php (di dalam group role:masteradmin)
         Route::post('permissions', [RoleController::class, 'storePermission'])->name('permissions.store');
+        Route::put('permissions/{permission}', [RoleController::class, 'updatePermission'])->name('permissions.update');
+        Route::delete('permissions/{permission}', [RoleController::class, 'destroyPermission'])->name('permissions.destroy');
+
+        Route::get('role/{role}/permissions', [RoleController::class, 'permissions'])   // untuk load data awal modal (AJAX)
+            ->name('role.permissions');
+
+        Route::post('role/{role}/permissions-sync', [RoleController::class, 'syncPermissions'])
+            ->name('role.permissions.sync');
     });
 
     // Claim rewwards

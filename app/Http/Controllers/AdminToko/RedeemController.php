@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Http;
 
 class RedeemController extends Controller
 {
+
+
     public function index()
     {
-        return view('admintoko.index');
+        return view('admintoko.redeem.index');
     }
 
     public function generateToken(Request $request)
@@ -30,7 +32,7 @@ class RedeemController extends Controller
         // check response
         if ($response->successful() && $response->json('success')) {
             // Retrieve token from response
-            $token = $response->json('content.:token') ?? $response->json('content.token'); 
+            $token = $response->json('content.:token') ?? $response->json('content.token');
 
             // Save token to cache for 1 hour
             Cache::put('inventory_token', $token, now()->addSeconds(3600));
