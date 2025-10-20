@@ -4,15 +4,19 @@ $cartCount = auth()->check()
 ? optional(optional(auth()->user()->cart)->items)->sum('quantity') ?? 0
 : 0;
 
-// buka grup Master Data jika salah satu child aktif
 $isMasterActive = request()->routeIs(['role.*','users.*']);
 
-// ====== FLAG AKTIF ======
-// Catalog aktif di semua halaman produk KECUALI halaman manajemen
-$isCatalogActive = request()->routeIs('products.*') && !request()->routeIs('products.management*');
+$mgmtRoutes = [
+'products.management',
+'products.create',
+'products.edit',
+'products.store',
+'products.update',
+'products.destroy',
+];
+$isMgmtProductActive = request()->routeIs($mgmtRoutes) || request()->routeIs('products.management*');
 
-// Manajemen produk aktif untuk rute manajemen
-$isMgmtProductActive = request()->routeIs(['products.management','products.management*']);
+$isCatalogActive = request()->routeIs(['products.index','products.show']) && !$isMgmtProductActive;
 @endphp
 
 <style>
@@ -45,7 +49,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
     box-shadow: 0 0 0 2px #fff
   }
 
-  /* sudut lancip, highlight halus */
   .navbar-vertical .nav-link {
     border-radius: 0 !important;
     position: relative;
@@ -64,13 +67,11 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
 
 <nav class="navbar-vertical navbar">
   <div class="nav-scroller">
-    <!-- Brand -->
     <a class="navbar-brand" href="{{ route('dashboard') }}" style="margin-top:10px;">
       <span style="font-size:26px;font-weight:bold;color:white;">Boson-POS</span>
     </a>
 
     <ul class="navbar-nav flex-column" id="sideNavbar">
-      {{-- Dashboard --}}
       <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
           href="{{ route('dashboard') }}" style="font-size:16px">
@@ -78,7 +79,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
         </a>
       </li>
 
-      {{-- MASTER ADMIN ONLY --}}
       @role('masteradmin')
       <hr class="sidebar-divider">
       <li class="nav-item mt-2">
@@ -111,7 +111,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
       </li>
       @endrole
 
-      {{-- PRODUCT --}}
       <hr class="sidebar-divider">
       <li class="nav-item mt-2">
         <div class="navbar-heading">Product</div>
@@ -145,7 +144,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
         </a>
       </li>
 
-      {{-- CART --}}
       <li class="nav-item position-relative">
         <a class="nav-link d-flex align-items-center {{ request()->routeIs('cart.*') ? 'active' : '' }}"
           href="{{ route('cart.index') }}" style="font-size:16px">
@@ -159,7 +157,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
         </a>
       </li>
 
-      {{-- REPORTS --}}
       <hr class="sidebar-divider">
       <li class="nav-item mt-2">
         <div class="navbar-heading">Reports</div>
@@ -172,7 +169,6 @@ $isMgmtProductActive = request()->routeIs(['products.management','products.manag
         </a>
       </li>
 
-      {{-- GIFTS & REWARDS --}}
       <hr class="sidebar-divider">
       <li class="nav-item mt-2">
         <div class="navbar-heading">Gifts & Rewards</div>

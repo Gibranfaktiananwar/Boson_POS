@@ -16,6 +16,12 @@ $thumbs = collect($gallery)->take(5)->values()->toArray();
 $cat = optional($product->category);
 $catName = $cat->name;
 $catCode = $cat->code;
+
+// URL Back dengan fallback ke index katalog
+$backUrl = url()->previous();
+if (!$backUrl || $backUrl === url()->current()) {
+$backUrl = route('products.index'); // sesuaikan jika route berbeda
+}
 @endphp
 
 <div class="container-fluid py-4">
@@ -67,14 +73,14 @@ $catCode = $cat->code;
                                     <h1 class="product-title mb-0">{{ $product->name }}</h1>
                                 </div>
 
-                                {{-- Deskripsi --}}
+                                {{-- Deskripsi (RAPI KOTAK) --}}
                                 <div class="detail-body">
-                                    <p class="text-muted mb-0">
+                                    <p class="text-muted mb-0 desc-just">
                                         {{ $product->description ?: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.' }}
                                     </p>
                                 </div>
 
-                                {{-- Footer: kategori (2 baris) + stok & harga (menumpuk) + tombol --}}
+                                {{-- Footer: kategori + stok & harga + tombol --}}
                                 <div class="detail-footer mt-auto">
 
                                     {{-- ===== Category block (dua baris) ===== --}}
@@ -106,10 +112,12 @@ $catCode = $cat->code;
                                     </div>
 
                                     <div class="d-flex flex-wrap gap-2">
-                                        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-lg">
+                                        {{-- Tombol Back dengan fallback --}}
+                                        <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-lg">
                                             <i class="fas fa-arrow-left me-2"></i>Back
                                         </a>
 
+                                        {{-- Add to Cart --}}
                                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             <input type="hidden" name="quantity" value="1">
@@ -154,6 +162,28 @@ $catCode = $cat->code;
         --frame-h: 420px;
     }
 
+    /* === PARAGRAF DESKRIPSI: RAPI “KOTAK” tanpa background/border === */
+    .desc-just {
+        margin: 0;
+        /* tanpa jarak ekstra */
+        padding: 0;
+        /* tanpa padding */
+        max-width: 60ch;
+        /* lebar baca konsisten (kotak) */
+        line-height: 1.6;
+        text-align: justify;
+        /* rata kiri-kanan */
+        text-justify: inter-word;
+        /* atur jarak antar kata */
+        hyphens: none;
+        /* tanpa tanda pisah kata */
+        word-break: normal;
+        overflow-wrap: anywhere;
+        /* amankan kata sangat panjang/URL */
+        background: transparent;
+        border: 0;
+    }
+
     /* Kotak preview utama: FIXED */
     .product-image-frame {
         width: min(100%, var(--frame-w));
@@ -177,7 +207,7 @@ $catCode = $cat->code;
         width: auto;
         height: auto;
         object-fit: contain;
-        cursor: zoom-in;
+        cursor: pointer;
         transition: transform .18s ease, box-shadow .18s ease;
         border-radius: 0;
     }
@@ -199,7 +229,7 @@ $catCode = $cat->code;
 
     .thumb-item {
         width: 100%;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 1/1;
         object-fit: cover;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
@@ -261,7 +291,6 @@ $catCode = $cat->code;
         min-width: 135px;
     }
 
-    /* lebar label biar rapi */
     .meta-item .badge {
         font-weight: 600;
     }
@@ -434,7 +463,6 @@ $catCode = $cat->code;
         const wrap = modalEl.querySelector('.preview-wrap');
         let bsModal = null;
 
-        // ------- Modal preview -------
         function refresh() {
             imgPrev.src = modalImages[modalIndex] || '';
             const len = modalImages.length,
@@ -442,9 +470,7 @@ $catCode = $cat->code;
             prevBtn.classList.toggle('d-none', !multi);
             nextBtn.classList.toggle('d-none', !multi);
             info.classList.toggle('d-none', !multi);
-            if (multi) {
-                info.textContent = (modalIndex + 1) + ' / ' + len;
-            }
+            if (multi) info.textContent = (modalIndex + 1) + ' / ' + len;
             prevBtn.toggleAttribute('disabled', modalIndex <= 0);
             nextBtn.toggleAttribute('disabled', modalIndex >= len - 1);
         }
@@ -452,9 +478,7 @@ $catCode = $cat->code;
             modalImages = Array.isArray(images) ? images : [];
             modalIndex = Number(startIndex) || 0;
             refresh();
-            if (!bsModal) {
-                bsModal = new bootstrap.Modal(modalEl);
-            }
+            if (!bsModal) bsModal = new bootstrap.Modal(modalEl);
             bsModal.show();
         };
         prevBtn.addEventListener('click', e => {
@@ -492,7 +516,7 @@ $catCode = $cat->code;
         });
         wrap.addEventListener('click', e => e.stopPropagation());
 
-        // ------- Thumbnail hover ⇒ ganti gambar utama -------
+        // Thumbnail hover ⇒ ganti gambar utama
         const thumbs = document.querySelectorAll('.thumb-item');
         thumbs.forEach(img => {
             img.addEventListener('mouseenter', () => {
@@ -510,9 +534,7 @@ $catCode = $cat->code;
                 e.preventDefault();
                 const images = JSON.parse(img.getAttribute('data-gallery') || '[]');
                 const idx = Number(img.getAttribute('data-index')) || 0;
-                if (images.length) {
-                    window.openPreview(images, idx);
-                }
+                if (images.length) window.openPreview(images, idx);
             });
         });
 
@@ -520,9 +542,7 @@ $catCode = $cat->code;
         mainImg.addEventListener('click', () => {
             const images = JSON.parse(mainImg.getAttribute('data-gallery') || '[]');
             const idx = Number(mainImg.getAttribute('data-index')) || 0;
-            if (images.length) {
-                window.openPreview(images, idx);
-            }
+            if (images.length) window.openPreview(images, idx);
         });
     })();
 </script>

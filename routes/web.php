@@ -50,7 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // for products
     Route::resource('products', ProductController::class);
-    Route::get('/products-management', [ProductController::class, 'management'])->name('products.management');
+    Route::get('/management-product', [ProductController::class, 'management'])->name('products.management');
+    Route::get('/management-product/create', [ProductController::class, 'create'])->name('products.create');
 
     // cart
     Route::get('cart', [CartController::class, 'index'])->name('cart.index');

@@ -5,16 +5,17 @@ namespace App\Http\Controllers\AdminToko;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        // retrieve all product data from the database
         $products = Product::with('category')->get();
-        // Send the data to the admintoko.catalog.view
         return view('admintoko.catalog.view', compact('products'));
     }
 
@@ -41,45 +42,84 @@ class ProductController extends Controller
             'code'        => 'required|exists:categories,code',
             'name'        => 'required|string|max:255',
             'stock'       => 'required|integer|min:0',
-            'description' => 'required|string',
+            'description' => 'required|string|max:600',
             'price'       => 'required|numeric|min:0',
-
-            // gambar utama wajib di images[0]
-            'images.0'    => ['required','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.1'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.2'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.3'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.4'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
+            'images'      => 'required|array|min:1|max:5', // Wajib minimal 1 gambar
+            'images.*'    => 'required|image|mimes:jpg,jpeg,png,webp|max:5048',
+            'ordered'     => 'nullable|array',
         ]);
 
-        // simpan gambar utama
-        $mainPath = $request->file('images')[0]->store('products', 'public');
+        $files   = array_values($request->file('images', []));
+        $ordered = (array) $request->input('ordered', []);
 
-        // buat product sekali saja
-        $product = Product::create([
-            'code'        => $request->code,
-            'name'        => $request->name,
-            'stock'       => $request->stock,
-            'description' => $request->description,
-            'price'       => $request->price,
-            'image'       => $mainPath,
-        ]);
-
-        // simpan gambar galeri opsional (maks 4)
-        $files = $request->file('images');
-        foreach ([1,2,3,4] as $i) {
-            if (!empty($files[$i])) {
-                $path = $files[$i]->store('products', 'public');
-                $product->images()->create([
-                    'path'       => $path,
-                    'sort_order' => $i,
-                ]);
-            }
+        // Auto-generate ordered jika kosong
+        if (empty($ordered) && !empty($files)) {
+            $ordered = array_fill(0, count($files), 'file');
         }
 
-        return redirect()->route('products.management')->with('success', 'Product berhasil ditambahkan');
-    }
+        DB::beginTransaction();
+        $uploadedPaths = []; // Track untuk cleanup jika error
 
+        try {
+            $product = Product::create([
+                'code'        => $request->code,
+                'name'        => $request->name,
+                'stock'       => $request->stock,
+                'description' => $request->description,
+                'price'       => $request->price,
+                'image'       => null,
+            ]);
+
+            $finalPaths = [];
+            $fileIdx = 0;
+
+            foreach ($ordered as $tok) {
+                if ($tok === 'file') {
+                    if (!isset($files[$fileIdx])) continue;
+                    $stored = $files[$fileIdx]->store('products', 'public');
+                    $uploadedPaths[] = $stored; // Track untuk cleanup
+                    $finalPaths[] = $stored;
+                    $fileIdx++;
+                }
+            }
+
+            if (empty($finalPaths)) {
+                throw new \Exception('Tidak ada gambar yang berhasil diupload.');
+            }
+
+            // Set gambar pertama sebagai main image
+            $product->image = $finalPaths[0];
+            $product->save();
+
+            // Sisanya masuk ke gallery
+            $rest = array_slice($finalPaths, 1);
+            foreach ($rest as $i => $p) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'path'       => $p,
+                    'sort_order' => $i + 1,
+                ]);
+            }
+
+            DB::commit();
+            return redirect()
+                ->route('products.management')
+                ->with('success', 'Product berhasil ditambahkan');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            // Cleanup uploaded files jika terjadi error
+            foreach ($uploadedPaths as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return back()
+                ->withErrors(['error' => 'Gagal menyimpan produk: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
 
     public function edit(Product $product)
     {
@@ -91,66 +131,210 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'code'        => 'required|exists:categories,code',
-            'name'        => 'required|string|max:255',
-            'stock'       => 'required|integer|min:0',
-            'description' => 'required|string',
-            'price'       => 'required|numeric|min:0',
-
-            'images.0'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.1'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.2'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.3'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-            'images.4'    => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5048'],
-
-            'remove_image_ids'   => ['array'],
-            'remove_image_ids.*' => ['integer','exists:product_images,id'],
+            'code'         => 'required|exists:categories,code',
+            'name'         => 'required|string|max:255',
+            'stock'        => 'required|integer|min:0',
+            'description'  => 'required|string|max:600',
+            'price'        => 'required|numeric|min:0',
+            'images.*'     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5048',
+            'ordered'      => 'nullable|array',
+            'remove_main'  => 'nullable|in:1',
+            'remove_image_ids'   => 'nullable|array',
+            'remove_image_ids.*' => 'integer|exists:product_images,id',
         ]);
 
-        // update field dasar
-        $product->update($request->only('code','name','stock','description','price'));
+        // Update basic info
+        $product->update($request->only('code', 'name', 'stock', 'description', 'price'));
+        $product->load('images');
 
-        $files = $request->file('images', []);
+        $oldMainPath = $product->image;
+        $files   = array_values($request->file('images', []));
+        $ordered = (array) $request->input('ordered', []);
 
-        // ganti gambar utama jika ada upload baru di images[0]
-        if (!empty($files[0])) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+        DB::beginTransaction();
+        $uploadedPaths = []; // Track new uploads untuk cleanup jika error
+        $pathsToDelete = []; // Track paths yang akan dihapus
+
+        try {
+            // === HAPUS GAMBAR YANG DITANDAI ===
+            if ($request->boolean('remove_main')) {
+                if ($product->image) {
+                    $pathsToDelete[] = $product->image;
+                    $oldMainPath = null;
+                    $product->image = null;
+                }
             }
-            $product->image = $files[0]->store('products', 'public');
-            $product->save();
-        }
 
-        // hapus galeri yang dicentang
-        if ($request->filled('remove_image_ids')) {
-            $toDelete = $product->images()->whereIn('id', $request->remove_image_ids)->get();
-            foreach ($toDelete as $img) {
-                Storage::disk('public')->delete($img->path);
-                $img->delete();
+            $toDeleteIds = (array) $request->input('remove_image_ids', []);
+            if (!empty($toDeleteIds)) {
+                $delImgs = $product->images()->whereIn('id', $toDeleteIds)->get();
+                foreach ($delImgs as $im) {
+                    if ($im->path) {
+                        $pathsToDelete[] = $im->path;
+                    }
+                    $im->delete();
+                }
+                $product->load('images');
             }
-        }
 
-        // tambah galeri baru (batasi total 4)
-        $existing = $product->images()->count();
-        foreach ([1,2,3,4] as $i) {
-            if (!empty($files[$i])) {
-                if ($existing >= 4) break; // jaga batas
-                $path = $files[$i]->store('products', 'public');
-                $product->images()->create([
-                    'path'       => $path,
-                    'sort_order' => $existing + 1,
-                ]);
-                $existing++;
+            // === REBUILD DARI ORDERED[] ===
+            if (empty($ordered)) {
+                // Fallback mode lama (tidak ada ordered)
+                $this->handleLegacyUpdate($product, $files, $oldMainPath, $uploadedPaths, $pathsToDelete);
+            } else {
+                // Mode baru dengan ordered
+                $this->handleOrderedUpdate($product, $files, $ordered, $oldMainPath, $uploadedPaths);
             }
-        }
 
-        return redirect()->route('products.management')->with('success', 'Product berhasil diperbarui');
+            DB::commit();
+
+            // Hapus file setelah commit berhasil
+            foreach ($pathsToDelete as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return redirect()
+                ->route('products.management')
+                ->with('success', 'Product berhasil diperbarui');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            // Cleanup new uploads jika error
+            foreach ($uploadedPaths as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return back()
+                ->withErrors(['error' => 'Gagal memperbarui produk: ' . $e->getMessage()])
+                ->withInput();
+        }
     }
 
+    /**
+     * Handle update tanpa ordered array (legacy mode)
+     */
+    private function handleLegacyUpdate($product, $files, $oldMainPath, &$uploadedPaths, &$pathsToDelete)
+    {
+        if (!empty($files[0])) {
+            if ($oldMainPath) {
+                $pathsToDelete[] = $oldMainPath;
+            }
+            $newMain = $files[0]->store('products', 'public');
+            $uploadedPaths[] = $newMain;
+            $product->image = $newMain;
+        }
+
+        $existing = $product->images()->count();
+        for ($i = 1; $i < count($files); $i++) {
+            if ($existing >= 4) break; // Max 5 total (1 main + 4 gallery)
+
+            $p = $files[$i]->store('products', 'public');
+            $uploadedPaths[] = $p;
+
+            ProductImage::create([
+                'product_id' => $product->id,
+                'path'       => $p,
+                'sort_order' => ++$existing,
+            ]);
+        }
+
+        $product->save();
+    }
+
+    /**
+     * Handle update dengan ordered array (drag & drop mode)
+     */
+    private function handleOrderedUpdate($product, $files, $ordered, $oldMainPath, &$uploadedPaths)
+    {
+        $galleryById = $product->images->keyBy('id');
+        $finalPaths = [];
+        $fileIdx = 0;
+
+        foreach ($ordered as $tok) {
+            // Handle existing image
+            if (is_string($tok) && Str::startsWith($tok, 'img:')) {
+                $id = substr($tok, 4);
+
+                if ($id === '__main__') {
+                    if ($oldMainPath) {
+                        $finalPaths[] = $oldMainPath;
+                    }
+                } else {
+                    $img = $galleryById->get((int)$id);
+                    if ($img && $img->path) {
+                        $finalPaths[] = $img->path;
+                    }
+                }
+            }
+            // Handle new file
+            elseif ($tok === 'file') {
+                if (isset($files[$fileIdx])) {
+                    $stored = $files[$fileIdx]->store('products', 'public');
+                    $uploadedPaths[] = $stored;
+                    $finalPaths[] = $stored;
+                    $fileIdx++;
+                }
+            }
+        }
+
+        // Validasi minimal 1 gambar
+        if (empty($finalPaths)) {
+            throw new \Exception('Produk harus memiliki minimal 1 gambar.');
+        }
+
+        // Set main image dan gallery
+        $newMain = $finalPaths[0];
+        $rest    = array_slice($finalPaths, 1);
+
+        // Hapus semua gallery lama dan buat ulang
+        $product->images()->delete();
+
+        foreach ($rest as $i => $path) {
+            ProductImage::create([
+                'product_id' => $product->id,
+                'path'       => $path,
+                'sort_order' => $i + 1,
+            ]);
+        }
+
+        $product->image = $newMain;
+        $product->save();
+    }
 
     public function destroy(Product $product)
     {
-        $product->delete();
-        return redirect()->route('products.management')->with('success', 'Product berhasil dihapus');
+        DB::beginTransaction();
+
+        try {
+            // Hapus main image
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            // Hapus gallery images
+            foreach ($product->images as $im) {
+                if ($im->path && Storage::disk('public')->exists($im->path)) {
+                    Storage::disk('public')->delete($im->path);
+                }
+            }
+
+            $product->images()->delete();
+            $product->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('products.management')
+                ->with('success', 'Product berhasil dihapus');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()
+                ->withErrors(['error' => 'Gagal menghapus produk: ' . $e->getMessage()]);
+        }
     }
 }
