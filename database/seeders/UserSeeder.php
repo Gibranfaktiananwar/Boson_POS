@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        
+
         // create role
         $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
         $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);

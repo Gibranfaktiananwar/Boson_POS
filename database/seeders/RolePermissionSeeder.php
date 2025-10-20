@@ -2,42 +2,64 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Initial Permission List
+        // Reset cache permission Spatie
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Daftar permission lengkap
         $permissions = [
+            // User
             'view-user',
             'add-user',
             'edit-user',
             'delete-user',
+
+            // Category
+            'view-category',
+            'add-category',
+            'edit-category',
+            'delete-category',
+
+            // Product
+            'view-product',
+            'add-product',
+            'edit-product',
+            'delete-product',
+
+            // Catalog
+            'view-catalog',
+
+            // Cart
+            'view-cart',
+            'add-cart',
+            'edit-cart',
+            'delete-cart',
+
+            // Rewards
             'redeem-rewards',
         ];
 
-        // Create permissions
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+        // Buat permissions (idempotent)
+        foreach ($permissions as $p) {
+            Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
         }
 
-        // Create Role: masteradmin
-        $adminRole = Role::firstOrCreate(['name' => 'masteradmin']);
-        // Grant all permission to masteradmin role
-        $adminRole->givePermissionTo(Permission::pluck('name')->toArray());
+        // Buat roles (idempotent)
+        $master = Role::firstOrCreate(['name' => 'masteradmin', 'guard_name' => 'web']);
+        $adminToko = Role::firstOrCreate(['name' => 'admintoko', 'guard_name' => 'web']);
 
-        // Create Role: admintoko
-        $adminTokoRole = Role::firstOrCreate(['name' => 'admintoko']);
-        //  grant redeem-rewards permission to the admintoko role.
-        $permission2 = Permission::firstOrCreate(['name' => 'redeem-rewards']);
-        $adminTokoRole->givePermissionTo($permission2);
-        $adminTokoRole->givePermissionTo(['redeem-rewards']);
+        // masteradmin dapat SEMUA permission
+        $master->syncPermissions(Permission::pluck('name')->all());
+
+        // admintoko: hanya yang kamu inginkan (di contoh ini tetap 'redeem-rewards')
+        $adminToko->syncPermissions(['redeem-rewards']);
     }
 }

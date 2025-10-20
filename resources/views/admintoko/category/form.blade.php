@@ -9,7 +9,7 @@
         @if(isset($category)) @method('PUT') @endif
 
         <div class="mb-3">
-            <label class="form-label fw-semibold">Category Code</label>
+            <label class="form-label fw-semibold">Code Number</label>
             <input type="text" name="code" class="form-control border-primary-subtle" placeholder="e.g. 001" value="{{ old('code', $category->code ?? '') }}" required pattern="\d+">
             <small class="text-muted">* Input number only</small>
         </div>

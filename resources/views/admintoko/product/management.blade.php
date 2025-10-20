@@ -18,6 +18,7 @@
                     <th>No</th>
                     <th>Images</th>
                     <th>Code</th>
+                    <th>Category</th>
                     <th>Name</th>
                     <th>Stock</th>
                     <th>Description</th>
@@ -45,6 +46,7 @@
 
                     </td>
                     <td>{{ $product->code }}</td>
+                    <td>{{ $product->category?->name ?? '-' }}</td>
                     <td>{{ $product->name }}</td>
                     <td>{{ $product->stock }}</td>
                     <td>{{ $product->description }}</td>

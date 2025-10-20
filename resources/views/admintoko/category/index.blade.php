@@ -16,7 +16,7 @@
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Category Code</th>
+                    <th>Code Number</th>
                     <th>Category Name</th>
                     <th>Description</th>
                     <th class="text-center">Action</th>
