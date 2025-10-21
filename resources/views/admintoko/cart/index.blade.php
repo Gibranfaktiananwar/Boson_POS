@@ -3,16 +3,30 @@
 @section('content')
 
 <style>
-.qty-input::-webkit-outer-spin-button,
-.qty-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-/* Firefox */
-.qty-input[type="number"] {
-    -moz-appearance: textfield;
-    appearance: textfield; /* fallback modern */
-}
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    .qty-input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        /* fallback modern */
+    }
+
+    /* Rp + angka menyatu (tanpa bold) */
+    .price-inline {
+        white-space: nowrap;
+    }
+
+    /* Center semua header & sel tabel pada cart */
+    .cart-table th,
+    .cart-table td {
+        text-align: center;
+        vertical-align: middle;
+    }
 </style>
 
 <div class="container">
@@ -21,13 +35,13 @@
     @if($items->isNotEmpty())
     <div class="card">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0 cart-table">
                 <thead>
                     <tr>
                         <th></th>
                         <th>Product Name</th>
                         <th>Price per unit</th>
-                        <th width="180" class="text-center">Quantity</th>
+                        <th width="180">Quantity</th>
                         <th>Subtotal</th>
                         <th width="250"></th>
                     </tr>
@@ -35,55 +49,62 @@
                 <tbody>
                     @foreach($items as $item)
                     @php
-                        $product   = $item->product;
-                        $price     = $product->price ?? 0;
-                        $quantity  = $item->quantity ?? 0;
-                        $subtotal  = $price * $quantity;
+                    $product = $item->product;
+                    $price = $product->price ?? 0;
+                    $quantity = $item->quantity ?? 0;
+                    $subtotal = $price * $quantity;
                     @endphp
                     <tr>
                         <td>
                             @if(!empty($product->image))
-                                <img src="{{ asset('storage/' . $product->image) }}"
-                                     alt="{{ $product->name }}"
-                                     class="rounded"
-                                     style="height:60px; width:60px; object-fit:cover;">
+                            <img src="{{ asset('storage/' . $product->image) }}"
+                                alt="{{ $product->name }}"
+                                class="rounded"
+                                style="height:60px; width:60px; object-fit:cover;">
                             @endif
                         </td>
                         <td>{{ $product->name }}</td>
-                        <td>Rp {{ number_format($price, 0, ',', '.') }}</td>
+
+                        <!-- Price per unit (Rp gabung & no-wrap) -->
+                        <td><span class="price-inline">Rp{{ number_format($price, 0, ',', '.') }}</span></td>
+
                         @can('edit-cart')
-                        <td class="text-center">
+                        <td>
                             <form action="{{ route('cart.update', $product->id) }}"
-                                  method="POST"
-                                  class="d-inline qty-form">
+                                method="POST"
+                                class="d-inline qty-form"
+                                data-remove-url="{{ route('cart.remove', $product->id) }}">
                                 @csrf
                                 <div class="input-group input-group-sm mx-auto" style="max-width: 130px;">
                                     <button type="button"
-                                            class="btn btn-outline-secondary qty-btn"
-                                            data-step="-1">−</button>
+                                        class="btn btn-outline-secondary qty-btn"
+                                        data-step="-1">−</button>
 
                                     <input type="number"
-                                           name="quantity"
-                                           value="{{ $quantity }}"
-                                           min="1"
-                                           max="{{ $product->stock }}"
-                                           class="form-control text-center qty-input">
+                                        name="quantity"
+                                        value="{{ $quantity }}"
+                                        min="1"
+                                        max="{{ $product->stock }}"
+                                        class="form-control text-center qty-input">
 
                                     <button type="button"
-                                            class="btn btn-outline-secondary qty-btn"
-                                            data-step="1">+</button>
+                                        class="btn btn-outline-secondary qty-btn"
+                                        data-step="1">+</button>
                                 </div>
                             </form>
-                            <small class="text-muted d-block mt-1 text-center">
+                            <small class="text-muted d-block mt-1">
                                 In stock: {{ $product->stock }}
                             </small>
                         </td>
                         @endcan
-                        <td>Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
-                        <td class="align-middle">
+
+                        <!-- Subtotal (Rp gabung & no-wrap) -->
+                        <td><span class="price-inline">Rp{{ number_format($subtotal, 0, ',', '.') }}</span></td>
+
+                        <td>
                             @can('delete-cart')
                             <a href="{{ route('cart.remove', $product->id) }}"
-                               class="btn btn-outline-danger btn-sm">
+                                class="btn btn-outline-danger btn-sm">
                                 Delete
                             </a>
                             @endcan
@@ -100,54 +121,60 @@
                     Rp {{ number_format($total, 0, ',', '.') }}
                 </span>
             </h5>
-            <a href="{{ route('cart.checkout') }}"
-               class="btn btn-success btn-lg">
-               Checkout
+            <a href="{{ route('cart.checkout') }}" class="btn btn-success btn-lg">
+                Checkout
             </a>
         </div>
     </div>
     @endcan
     @else
-        <p>Your cart is empty. <a href="{{ route('products.index') }}">Continue shopping</a></p>
+    <p>Your cart is empty. <a href="{{ route('products.index') }}">Continue shopping</a></p>
     @endif
 </div>
 
-{{-- Script untuk tombol plus/minus --}}
+{{-- Script plus/minus (hapus jika qty=1 lalu minus) --}}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // klik plus/minus
-    document.querySelectorAll('.qty-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const step = parseInt(this.dataset.step, 10);
-            const form = this.closest('.qty-form');
-            const input = form.querySelector('.qty-input');
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.qty-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const step = parseInt(this.dataset.step, 10);
+                const form = this.closest('.qty-form');
+                const input = form.querySelector('.qty-input');
 
-            const min = parseInt(input.getAttribute('min') || '1', 10);
-            const max = parseInt(input.getAttribute('max') || '999999', 10);
-            let val = parseInt(input.value || '0', 10);
+                const min = parseInt(input.getAttribute('min') || '1', 10);
+                const max = parseInt(input.getAttribute('max') || '999999', 10);
+                let current = parseInt(input.value || '0', 10);
+                current = isNaN(current) ? min : current;
 
-            val = isNaN(val) ? min : val;
-            val = Math.min(max, Math.max(min, val + step));
+                // Jika minus saat quantity = 1 → hapus item
+                if (step < 0 && current <= min) {
+                    const removeUrl = form.dataset.removeUrl;
+                    if (removeUrl) {
+                        window.location.href = removeUrl;
+                        return;
+                    }
+                }
 
-            if (val !== parseInt(input.value, 10)) {
-                input.value = val;
-                form.submit(); // auto kirim ke cart.update
-            }
+                let next = Math.min(max, Math.max(min, current + step));
+                if (next !== current) {
+                    input.value = next;
+                    form.submit(); // update qty
+                }
+            });
+        });
+
+        // Submit otomatis saat user ketik manual
+        document.querySelectorAll('.qty-input').forEach(inp => {
+            inp.addEventListener('change', function() {
+                const min = parseInt(this.getAttribute('min') || '1', 10);
+                const max = parseInt(this.getAttribute('max') || '999999', 10);
+                let val = parseInt(this.value || '0', 10);
+                val = isNaN(val) ? min : val;
+                val = Math.min(max, Math.max(min, val));
+                this.value = val;
+                this.closest('.qty-form').submit();
+            });
         });
     });
-
-    // submit otomatis saat user ketik manual
-    document.querySelectorAll('.qty-input').forEach(inp => {
-        inp.addEventListener('change', function () {
-            const min = parseInt(this.getAttribute('min') || '1', 10);
-            const max = parseInt(this.getAttribute('max') || '999999', 10);
-            let val = parseInt(this.value || '0', 10);
-            val = isNaN(val) ? min : val;
-            val = Math.min(max, Math.max(min, val));
-            this.value = val;
-            this.closest('.qty-form').submit();
-        });
-    });
-});
 </script>
 @endsection
